@@ -2,8 +2,8 @@ var http = require('http'),
     url  = require('url'),
     fs   = require('fs'),
     sio  = require('socket.io'),
+    chokidar = require('chokidar'),
     auth = require('socketio-auth');
-
 // var server = http.createServer(function (request, response) {
 // 	var path = url.parse(request.url).pathname;
 // 	switch(path) {
@@ -25,7 +25,7 @@ var http = require('http'),
 // 				}
 // 			});
 // 			break;
-// 		default: 
+// 		default:
 // 			response.writeHead(404);
 // 			response.write('404, that doesn\'t exist!');
 // 			response.end();
@@ -69,8 +69,10 @@ function sendFileContent(response, fileName, contentType){
 server.listen(3000);
 var io = sio(server);
 
+var watcher = chokidar.watch(__dirname + "/jsx/", {ignored: /^\./, persistent: true});
+
 // All connections
-io.sockets.on('connection', function(socket){	
+io.sockets.on('connection', function(socket){
 	console.log("Incoming connection...");
 	socket.emit('message', {'message' : 'Hello World'});
 	socket.on('client-event', function (data) {
@@ -84,10 +86,20 @@ var nasp = io.of('/com.example.socketio');
 // Connection
 nasp.on('connection', function (socket) {
 
+  watcher
+    .on('add', function(path) {console.log('File', path, 'has been added');})
+    .on('change', function(path) {console.log('File', path, 'has been changed'); nasp.to(socket.id).emit('refresh')})
+    .on('unlink', function(path) {console.log('File', path, 'has been removed');})
+    .on('error', function(error) {console.error('Error happened', error);})
+
 	console.log("Namespaced socket connected!");
 	console.log("ID: " + socket.id);
-		
+
 	// socket.emit('message', "Message from nasp, out of authentication")
+
+  socket.on('browserReload', function (){
+    nasp.to(socket.id).emit('refresh');
+  })
 
 	socket.on('requestScript', function (data) {
 		console.log("On requestScript...");
@@ -96,13 +108,19 @@ nasp.on('connection', function (socket) {
 		var payload;
 		switch(data) {
 			case 'alert':
-				payload = "alert('Alert from Server\\nSocket sent this message')";
+        console.log("Sending function to InDesign")
+				payload = "bt.testingScript()"
 				break;
-			case 'newDoc':
-				payload = fs.readFileSync(__dirname + "/jsx/NewFile.jsx", "utf8");
-				break;
+      case 'loadJSX':
+        console.log("Loading JSX from Server")
+        payload = fs.readFileSync(__dirname + "/jsx/btMain.jsx", "utf8");
+        payload += " " + fs.readFileSync(__dirname + "/jsx/testing.jsx", "utf8");
+        break;
+      case 'load':
+        payload = "sayWhatsUp()"
+        break;
 			default:
-				payload = "alert('Error\\nUnknown request')";
+				payload = "alert('Error\\nUnknown request')"
 		}
 		nasp.to(socket.id).emit('evalScript', payload);
 	});
@@ -123,5 +141,3 @@ auth(nasp, {
     }
   }
 });
-
-
