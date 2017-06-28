@@ -32,7 +32,8 @@ var http = require('http'),
 // 	}
 // });
 
-var server = http.createServer(function(request, response) {
+const server = http.createServer(function(request, response) {
+
   if(/^\/[a-zA-Z0-9\/]*.html$/.test(request.url.toString())){
     sendFileContent(response, request.url.toString().substring(1), "text/html");
   }
