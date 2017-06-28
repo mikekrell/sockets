@@ -1,0 +1,26 @@
+<!doctype HTML>
+<html>
+<head>
+  <style>
+  </style>
+  
+
+</head>
+<body>
+  <h1>Test the server...</h1>
+  <p>Open the console!</p>
+  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+  <script type="text/javascript">
+
+    var socket = io("http://localhost:3000");
+
+    socket.on('message', function (data) {
+      console.log('Incoming data from "message" event', data)
+    });
+
+    socket.emit('client-event', {'data-from-client': 'hohoho'});
+
+  </script>
+
+</body>
+</html>

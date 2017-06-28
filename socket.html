@@ -1,0 +1,54 @@
+<!doctype HTML>
+<html>
+<head>
+  <style>
+    body {
+      background-color: #ff7f66;
+      font-family: sans-serif;
+      color: gray;
+      padding: 10px;
+    }
+    label, p {
+      font-size: 12px;
+      color: #df9477;
+    }
+    button {
+      background-color:#323232;
+      border-radius:4px;
+      border:1px solid gray;
+      display:inline-block;
+      cursor:pointer;
+      color:lightgray;
+      padding:6px 12px;
+      float: right;
+    }
+    button:hover {
+      background-color:#424242;
+    }
+    button:active {
+      color: white;
+    }
+  </style>
+  
+
+</head>
+<body>
+  <label>CORS #1</label><button id="messagePS">Send message to Panel</button>
+  <p id="received-message"></p>
+
+  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+  <script type="text/javascript">
+
+    var socket = io("http://localhost:3000");
+
+    socket.on('message', function (data) {
+      console.log('Incoming data from "message" event', data)
+    });
+
+    document.getElementById('messagePS').onclick = function () {
+      socket.emit('client-event', {'data-from-client': 'hohoho'});
+    }
+  </script>
+
+</body>
+</html>
